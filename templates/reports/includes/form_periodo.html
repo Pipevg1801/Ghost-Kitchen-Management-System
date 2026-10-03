@@ -1,0 +1,9 @@
+<form method="get" class="d-flex align-items-center gap-2 m-0">
+  <label for="{{ form.periodo.id_for_label }}" class="small text-body-secondary text-nowrap">Periodo</label>
+  <select name="periodo" id="{{ form.periodo.id_for_label }}" class="form-select form-select-sm" data-autoenviar>
+    {% for valor, etiqueta in form.fields.periodo.choices %}
+      <option value="{{ valor }}"{% if valor == resumen.periodo %} selected{% endif %}>{{ etiqueta }}</option>
+    {% endfor %}
+  </select>
+  <noscript><button type="submit" class="btn btn-sm btn-dark">Aplicar</button></noscript>
+</form>

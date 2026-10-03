@@ -1,0 +1,32 @@
+{# Contenedor de gráficas; los datos se obtienen de reports:grafico_datos. #}
+<div class="informe-grafico" data-grafico-url="{% url 'reports:grafico_datos' %}">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div class="leyenda-estados small d-flex flex-wrap gap-3" aria-label="Leyenda">
+      <span><span class="muestra-color estado-recibido"></span> Recibido</span>
+      <span><span class="muestra-color estado-en_preparacion"></span> En preparación</span>
+      <span><span class="muestra-color estado-listo"></span> Listo</span>
+      <span><span class="muestra-color estado-cancelado"></span> Cancelado</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <label for="grafico-dias" class="small text-body-secondary text-nowrap">Rango</label>
+      <select id="grafico-dias" class="form-select form-select-sm" data-grafico-dias>
+        {% for dias in dias_grafico %}<option value="{{ dias }}">Últimos {{ dias }} días</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <h3 class="h6 fw-semibold">Pedidos por día y estado</h3>
+      <div class="lienzo-grafico"><canvas data-grafico="diario" role="img" aria-label="Pedidos por día, apilados por estado"></canvas></div>
+    </div>
+    <div class="col-lg-4">
+      <h3 class="h6 fw-semibold">Pedidos por estado</h3>
+      <div class="lienzo-grafico"><canvas data-grafico="estados" role="img" aria-label="Total de pedidos por estado"></canvas></div>
+    </div>
+    <div class="col-12">
+      <h3 class="h6 fw-semibold">Ingresos diarios (sin cancelados)</h3>
+      <div class="lienzo-grafico lienzo-bajo"><canvas data-grafico="ingresos" role="img" aria-label="Ingresos por día"></canvas></div>
+    </div>
+  </div>
+  <p class="small text-body-secondary mt-2 mb-0" data-grafico-estado>Cargando datos…</p>
+</div>

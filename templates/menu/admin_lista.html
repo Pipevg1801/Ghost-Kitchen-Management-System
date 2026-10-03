@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load formato %}
+{% block title %}Gestión del menú{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+  <h1 class="h3 fw-bold mb-0"><i class="bi bi-journal-text"></i> Gestión del menú</h1>
+  <a href="{% url 'menu:admin_crear' %}" class="btn btn-dark"><i class="bi bi-plus-lg"></i> Agregar producto</a>
+</div>
+
+<form method="get" class="mb-3" role="search">
+  <div class="input-group">
+    <span class="input-group-text"><i class="bi bi-search"></i></span>
+    <input type="search" name="q" value="{{ busqueda }}" class="form-control" placeholder="Buscar por nombre o descripción"
+           aria-label="Buscar producto">
+    <button class="btn btn-outline-dark" type="submit">Buscar</button>
+  </div>
+</form>
+
+<div class="card shadow-sm border-0">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Nombre</th>
+          <th scope="col" class="text-end">Precio</th>
+          <th scope="col">Descripción</th>
+          <th scope="col" class="text-center">Cantidad disponible</th>
+          <th scope="col" class="text-center">Cantidad reservada</th>
+          <th scope="col" class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for plato in platos %}
+          <tr{% if not plato.activo %} class="text-body-secondary"{% endif %}>
+            <td class="fw-semibold">
+              {{ plato.nombre }}
+              {% if not plato.activo %}<span class="badge text-bg-secondary ms-1">Oculto</span>{% endif %}
+            </td>
+            <td class="text-end text-nowrap">{{ plato.precio|moneda }}</td>
+            <td class="small descripcion-corta">{{ plato.descripcion|default:"—"|truncatechars:80 }}</td>
+            <td class="text-center">
+              {% if plato.agotado %}<span class="badge text-bg-danger">0</span>{% else %}{{ plato.cantidad_disponible }}{% endif %}
+            </td>
+            <td class="text-center">{{ plato.cantidad_reservada }}</td>
+            <td class="text-end text-nowrap">
+              <a href="{% url 'menu:admin_editar' plato.pk %}" class="btn btn-outline-dark btn-sm">
+                <i class="bi bi-pencil"></i> Editar
+              </a>
+              {% if plato.activo %}
+                <form method="post" action="{% url 'menu:admin_eliminar' plato.pk %}" class="d-inline"
+                      data-confirmar="¿Eliminar «{{ plato.nombre }}» del menú? Si tiene pedidos asociados se ocultará para conservar el historial.">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash3"></i> Eliminar</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-body-secondary py-4">No hay productos registrados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "includes/paginacion.html" with pagina=page_obj %}
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load formato pedidos %}
+{% block title %}Pedido #{{ pedido.pk }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    {% if user.es_cliente %}
+      <li class="breadcrumb-item"><a href="{% url 'orders:mis_pedidos' %}">Mis pedidos</a></li>
+    {% elif user.es_operario %}
+      <li class="breadcrumb-item"><a href="{% url 'orders:operario_pedidos' %}">Pedidos activos</a></li>
+    {% else %}
+      <li class="breadcrumb-item"><a href="{% url 'reports:tabular' %}">Pedidos</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active" aria-current="page">Pedido #{{ pedido.pk }}</li>
+  </ol>
+</nav>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h1 class="h3 fw-bold mb-0">Pedido #{{ pedido.pk }}</h1>
+            <div class="text-body-secondary small">{{ pedido.fecha_creacion|date:"d/m/Y H:i" }}</div>
+          </div>
+          {% badge_estado pedido %}
+        </div>
+        <div class="mb-4">{% progreso_pedido pedido %}</div>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Producto</th>
+                <th scope="col" class="text-center">Cantidad</th>
+                <th scope="col" class="text-end">Precio unitario</th>
+                <th scope="col" class="text-end">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for detalle in pedido.detalles.all %}
+                <tr>
+                  <td>{{ detalle.plato.nombre }}</td>
+                  <td class="text-center">{{ detalle.cantidad }}</td>
+                  <td class="text-end">{{ detalle.precio_unitario|moneda }}</td>
+                  <td class="text-end">{{ detalle.subtotal|moneda }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row" colspan="3" class="text-end fs-5">Total</th>
+                <td class="text-end fs-4 fw-bold">{{ pedido.total|moneda }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        {% if user.es_cliente and pedido.puede_cancelarse %}
+          <form method="post" action="{% url 'orders:pedido_cancelar' pedido.pk %}" class="text-end"
+                data-confirmar="¿Desea cancelar el pedido #{{ pedido.pk }}? Esta acción no se puede deshacer.">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger"><i class="bi bi-x-circle"></i> Cancelar pedido</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <h2 class="h6 text-uppercase text-body-secondary">Cliente</h2>
+        <p class="mb-1 fw-semibold">{{ pedido.usuario.nombre }}</p>
+        <p class="mb-1 small"><i class="bi bi-envelope"></i> {{ pedido.usuario.email }}</p>
+        {% if pedido.usuario.telefono %}
+          <p class="mb-1 small"><i class="bi bi-telephone"></i> {{ pedido.usuario.telefono }}</p>
+        {% endif %}
+        {% if pedido.usuario.direccion %}
+          <p class="mb-0 small"><i class="bi bi-geo-alt"></i> {{ pedido.usuario.direccion }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% with nombre=request.resolver_match.url_name %}
+<ul class="nav nav-pills mb-4 flex-wrap gap-1">
+  <li class="nav-item"><a class="nav-link{% if nombre == 'informes' %} active{% endif %}" href="{% url 'reports:informes' %}">
+    <i class="bi bi-grid-1x2"></i> Resumen</a></li>
+  <li class="nav-item"><a class="nav-link{% if nombre == 'consolidado' %} active{% endif %}" href="{% url 'reports:consolidado' %}">
+    <i class="bi bi-card-list"></i> Informe consolidado</a></li>
+  <li class="nav-item"><a class="nav-link{% if nombre == 'grafico' %} active{% endif %}" href="{% url 'reports:grafico' %}">
+    <i class="bi bi-bar-chart-line"></i> Informe gráfico</a></li>
+  <li class="nav-item"><a class="nav-link{% if nombre == 'tabular' %} active{% endif %}" href="{% url 'reports:tabular' %}">
+    <i class="bi bi-table"></i> Informe tabular</a></li>
+</ul>
+{% endwith %}

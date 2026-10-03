@@ -1,0 +1,38 @@
+{% load formato pedidos %}
+<article class="card shadow-sm h-100 tarjeta-pedido tarjeta-pedido-{{ pedido.estado|lower }}">
+  <div class="card-body d-flex flex-column">
+    <header class="d-flex justify-content-between align-items-start gap-2 mb-2">
+      <h3 class="h5 mb-0">Pedido #{{ pedido.pk }} - {{ pedido.usuario.nombre }}</h3>
+      <span class="small text-body-secondary text-nowrap" title="{{ pedido.fecha_creacion|date:'d/m/Y H:i' }}">
+        <i class="bi bi-clock"></i> {{ pedido.fecha_creacion|date:"H:i" }}
+      </span>
+    </header>
+    <ul class="list-unstyled mb-3 fs-6">
+      {% for detalle in pedido.detalles.all %}
+        <li class="d-flex justify-content-between border-bottom py-1">
+          <span>{{ detalle.plato.nombre }}</span><span class="fw-bold">x{{ detalle.cantidad }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+    <div class="small text-body-secondary mb-3">
+      {% if pedido.usuario.telefono %}<div><i class="bi bi-telephone"></i> {{ pedido.usuario.telefono }}</div>{% endif %}
+      {% if pedido.usuario.direccion %}<div><i class="bi bi-geo-alt"></i> {{ pedido.usuario.direccion }}</div>{% endif %}
+      <div><i class="bi bi-cash-coin"></i> {{ pedido.total|moneda }}</div>
+    </div>
+    <footer class="mt-auto d-flex flex-wrap align-items-center justify-content-between gap-2">
+      {% badge_estado pedido %}
+      {% if pedido.siguiente_estado %}
+        <form method="post" action="{% url 'orders:operario_cambiar_estado' pedido.pk %}" class="m-0" data-ajax>
+          {% csrf_token %}
+          <input type="hidden" name="estado" value="{{ pedido.siguiente_estado }}">
+          <button type="submit" class="btn {% if pedido.siguiente_estado == 'LISTO' %}btn-success{% else %}btn-dark{% endif %}">
+            {% if pedido.siguiente_estado == "LISTO" %}<i class="bi bi-check2-all"></i> Marcar listo
+            {% else %}<i class="bi bi-fire"></i> Marcar en preparación{% endif %}
+          </button>
+        </form>
+      {% else %}
+        <a href="{% url 'orders:pedido_detalle' pedido.pk %}" class="btn btn-outline-secondary btn-sm">Ver detalle</a>
+      {% endif %}
+    </footer>
+  </div>
+</article>

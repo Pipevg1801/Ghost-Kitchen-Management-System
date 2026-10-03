@@ -1,0 +1,13 @@
+{% if cancelado %}
+  <div class="alert alert-secondary py-2 mb-0 small"><i class="bi bi-x-circle"></i> Pedido cancelado</div>
+{% else %}
+  <ol class="progreso-pedido list-unstyled d-flex mb-0" aria-label="Seguimiento del pedido">
+    {% for paso in pasos %}
+      <li class="progreso-paso{% if paso.completado %} completado{% endif %}{% if paso.actual %} actual{% endif %}"
+          {% if paso.actual %}aria-current="step"{% endif %}>
+        <span class="progreso-icono"><i class="bi {{ paso.icono }}"></i></span>
+        <span class="progreso-etiqueta">{{ paso.etiqueta }}</span>
+      </li>
+    {% endfor %}
+  </ol>
+{% endif %}

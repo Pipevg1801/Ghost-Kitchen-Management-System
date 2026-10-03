@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Informes de pedidos{% endblock %}
+{% block content %}
+<h1 class="h3 fw-bold mb-3"><i class="bi bi-bar-chart-line"></i> Informes de pedidos</h1>
+{% include "reports/includes/nav_informes.html" %}
+
+<section class="card border-0 shadow-sm mb-4" aria-labelledby="titulo-consolidado">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <h2 id="titulo-consolidado" class="h5 fw-semibold mb-0">Informe consolidado</h2>
+      {% include "reports/includes/form_periodo.html" %}
+    </div>
+    {% include "reports/includes/tarjetas.html" %}
+  </div>
+</section>
+
+<section class="card border-0 shadow-sm mb-4" aria-labelledby="titulo-grafico">
+  <div class="card-body">
+    <h2 id="titulo-grafico" class="h5 fw-semibold mb-3">Informe gráfico</h2>
+    {% include "reports/includes/grafico.html" %}
+  </div>
+</section>
+
+<section class="card border-0 shadow-sm" aria-labelledby="titulo-tabular">
+  <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+    <h2 id="titulo-tabular" class="h5 fw-semibold mb-0">Informe tabular</h2>
+    <a href="{% url 'reports:tabular' %}" class="small">Ver con filtros y paginación</a>
+  </div>
+  {% include "reports/includes/tabla_pedidos.html" %}
+</section>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/informes.js' %}"></script>
+{% endblock %}

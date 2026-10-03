@@ -1,0 +1,15 @@
+{% load formato %}
+<div class="d-flex flex-wrap gap-2 justify-content-end">
+  <form method="post" action="{% url 'orders:carrito_cancelar' %}" class="m-0"
+        data-confirmar="¿Desea cancelar el carrito? Se quitarán todos los productos.">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash3"></i> Cancelar carrito</button>
+  </form>
+  <form method="post" action="{% url 'orders:pedido_confirmar' %}" class="m-0"
+        data-confirmar="¿Confirmar el pedido por {{ carrito.total|moneda }}? Se enviará a cocina.">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success" {% if carrito.hay_faltantes %}disabled{% endif %}>
+      <i class="bi bi-check2-circle"></i> Confirmar pedido
+    </button>
+  </form>
+</div>

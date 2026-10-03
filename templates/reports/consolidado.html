@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load formato %}
+{% block title %}Informe consolidado{% endblock %}
+{% block content %}
+<h1 class="h3 fw-bold mb-3"><i class="bi bi-bar-chart-line"></i> Informes de pedidos</h1>
+{% include "reports/includes/nav_informes.html" %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h2 class="h5 fw-semibold mb-0">Informe consolidado · {{ resumen.periodo_etiqueta }}</h2>
+  {% include "reports/includes/form_periodo.html" %}
+</div>
+{% include "reports/includes/tarjetas.html" %}
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-transparent"><h3 class="h6 fw-semibold mb-0">Pedidos por estado</h3></div>
+      <table class="table mb-0 align-middle">
+        <tbody>
+          {% for fila in por_estado %}
+            <tr>
+              <td><span class="muestra-color estado-{{ fila.estado|lower }}"></span> {{ fila.etiqueta }}</td>
+              <td class="text-end fw-semibold">{{ fila.cantidad }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-transparent"><h3 class="h6 fw-semibold mb-0">Platos más vendidos</h3></div>
+      <table class="table mb-0 align-middle">
+        <thead class="table-light">
+          <tr><th scope="col">Plato</th><th scope="col" class="text-end">Unidades</th><th scope="col" class="text-end">Ingresos</th></tr>
+        </thead>
+        <tbody>
+          {% for fila in mas_vendidos %}
+            <tr>
+              <td>{{ fila.plato__nombre }}</td>
+              <td class="text-end">{{ fila.unidades }}</td>
+              <td class="text-end">{{ fila.ingresos|moneda }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" class="text-center text-body-secondary py-3">Sin ventas en el periodo.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

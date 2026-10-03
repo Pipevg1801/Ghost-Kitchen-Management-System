@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'menu:admin_lista' %}">Gestión del menú</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ titulo }}</li>
+  </ol>
+</nav>
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <h1 class="h4 fw-bold mb-4">{{ titulo }}{% if object %}: {{ object.nombre }}{% endif %}</h1>
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+        <form method="post" class="needs-validation" novalidate>
+          {% csrf_token %}
+          {% include "includes/form_field.html" with field=form.nombre %}
+          <div class="row">
+            <div class="col-md-6">{% include "includes/form_field.html" with field=form.precio %}</div>
+          </div>
+          {% include "includes/form_field.html" with field=form.descripcion %}
+          <div class="row">
+            <div class="col-md-6">{% include "includes/form_field.html" with field=form.cantidad_disponible %}</div>
+            <div class="col-md-6">{% include "includes/form_field.html" with field=form.cantidad_reservada %}</div>
+          </div>
+          <div class="form-check form-switch mb-4">
+            {{ form.activo }}
+            <label class="form-check-label" for="{{ form.activo.id_for_label }}">{{ form.activo.label }}</label>
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{% url 'menu:admin_lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-dark"><i class="bi bi-save"></i> {{ boton }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

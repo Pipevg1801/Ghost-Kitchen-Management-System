@@ -1,0 +1,125 @@
+/* Estilos propios: solo lo que Bootstrap no cubre. */
+:root {
+  --dk-acento: #f59f00;
+
+  /* Colores de estado del pedido (validados para daltonismo; siempre van con texto e icono). */
+  --estado-recibido: #2a78d6;
+  --estado-en-preparacion: #eb6834;
+  --estado-listo: #1baf7a;
+  --estado-cancelado: #4a3aa7;
+
+  --grafico-superficie: #ffffff;
+  --grafico-tinta: #52514e;
+  --grafico-rejilla: #e6e5e0;
+  --grafico-ingresos: #2a78d6;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+.mensajes-sistema .alert:last-child {
+  margin-bottom: 1.5rem;
+}
+
+.navbar .nav-link.active {
+  color: var(--dk-acento) !important;
+  font-weight: 600;
+}
+
+/* --- Estados del pedido ------------------------------------------------- */
+.badge-estado {
+  --color-estado: var(--bs-secondary);
+  color: var(--bs-body-color);
+  background-color: color-mix(in srgb, var(--color-estado) 14%, white);
+  border: 1px solid var(--color-estado);
+  font-weight: 600;
+}
+.badge-estado i { color: var(--color-estado); }
+.badge-estado-recibido, .estado-recibido { --color-estado: var(--estado-recibido); }
+.badge-estado-en_preparacion, .estado-en_preparacion { --color-estado: var(--estado-en-preparacion); }
+.badge-estado-listo, .estado-listo { --color-estado: var(--estado-listo); }
+.badge-estado-cancelado, .estado-cancelado { --color-estado: var(--estado-cancelado); }
+
+.muestra-color {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 3px;
+  background-color: var(--color-estado);
+  vertical-align: -0.05rem;
+}
+
+.tarjeta-pedido { border-top: 4px solid var(--color-estado, var(--bs-border-color)) !important; }
+.tarjeta-pedido-recibido { --color-estado: var(--estado-recibido); }
+.tarjeta-pedido-en_preparacion { --color-estado: var(--estado-en-preparacion); }
+.tarjeta-pedido-listo {
+  --color-estado: var(--estado-listo);
+  background-color: color-mix(in srgb, var(--estado-listo) 7%, white);
+}
+.tarjeta-pedido-cancelado { --color-estado: var(--estado-cancelado); opacity: 0.8; }
+
+/* Seguimiento Recibido → En preparación → Listo */
+.progreso-pedido { gap: 0.25rem; }
+.progreso-paso {
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+  position: relative;
+}
+.progreso-paso::before {
+  content: "";
+  position: absolute;
+  top: 0.9rem;
+  left: -50%;
+  width: 100%;
+  height: 3px;
+  background: var(--bs-border-color);
+  z-index: 0;
+}
+.progreso-paso:first-child::before { display: none; }
+.progreso-icono {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: var(--bs-tertiary-bg);
+  border: 2px solid var(--bs-border-color);
+}
+.progreso-etiqueta { display: block; margin-top: 0.25rem; }
+.progreso-paso.completado { color: var(--bs-body-color); }
+.progreso-paso.completado::before { background: var(--estado-listo); }
+.progreso-paso.completado .progreso-icono {
+  border-color: var(--estado-listo);
+  background: color-mix(in srgb, var(--estado-listo) 18%, white);
+}
+.progreso-paso.actual .progreso-etiqueta { font-weight: 700; }
+
+/* --- Menú y carrito ----------------------------------------------------- */
+.tarjeta-plato.agotado { opacity: 0.65; }
+.input-cantidad { width: 4.5rem; }
+.btn-cantidad { width: 2rem; padding-left: 0; padding-right: 0; }
+.cantidad-valor { min-width: 1.75rem; text-align: center; }
+.seccion-carrito { border-top: 4px solid var(--dk-acento) !important; }
+.seccion-carrito.sticky-lg-top { top: 5rem; }
+.indicador-carrito { position: relative; }
+.indicador-carrito .badge { position: absolute; top: -0.2rem; right: -0.9rem; }
+.descripcion-corta { max-width: 22rem; }
+
+/* --- Informes ----------------------------------------------------------- */
+.kpi-valor { font-size: clamp(1.4rem, 3.5vw, 2rem); font-weight: 700; line-height: 1.2; }
+.lienzo-grafico { position: relative; height: 280px; }
+.lienzo-bajo { height: 220px; }
+.acceso-rapido { transition: transform 0.15s ease, box-shadow 0.15s ease; color: inherit; }
+.acceso-rapido:hover { transform: translateY(-2px); box-shadow: var(--bs-box-shadow) !important; }

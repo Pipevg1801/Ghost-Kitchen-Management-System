@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Página no encontrada{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+  <i class="bi bi-signpost-split display-1 text-secondary"></i>
+  <h1 class="h3 mt-3">Página no encontrada</h1>
+  <p class="text-body-secondary">La página solicitada no existe.</p>
+  <a href="{% url 'accounts:inicio' %}" class="btn btn-dark">Volver al inicio</a>
+</div>
+{% endblock %}

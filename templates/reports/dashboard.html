@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+  <h1 class="h3 fw-bold mb-0"><i class="bi bi-speedometer2"></i> Dashboard administrativo</h1>
+  <span class="small text-body-secondary">{% now "l d \d\e F \d\e Y" %}</span>
+</div>
+
+<section class="mb-4" aria-label="Indicadores de hoy">
+  {% include "reports/includes/tarjetas.html" %}
+</section>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <a href="{% url 'menu:admin_lista' %}" class="card border-0 shadow-sm h-100 text-decoration-none acceso-rapido">
+      <div class="card-body">
+        <i class="bi bi-journal-text fs-2"></i>
+        <h2 class="h5 mt-2 mb-1">Gestión del menú</h2>
+        <p class="small text-body-secondary mb-0">{{ total_platos }} platos visibles en el menú.</p>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'reports:tabular' %}" class="card border-0 shadow-sm h-100 text-decoration-none acceso-rapido">
+      <div class="card-body">
+        <i class="bi bi-receipt fs-2"></i>
+        <h2 class="h5 mt-2 mb-1">Pedidos</h2>
+        <p class="small text-body-secondary mb-0">{{ resumen.activos }} pedidos activos en este momento.</p>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'reports:informes' %}" class="card border-0 shadow-sm h-100 text-decoration-none acceso-rapido">
+      <div class="card-body">
+        <i class="bi bi-bar-chart-line fs-2"></i>
+        <h2 class="h5 mt-2 mb-1">Informes</h2>
+        <p class="small text-body-secondary mb-0">Consolidado, gráfico y tabular.</p>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+        <h2 class="h6 mb-0 fw-semibold">Últimos pedidos</h2>
+        <a href="{% url 'reports:tabular' %}" class="small">Ver todos</a>
+      </div>
+      {% include "reports/includes/tabla_pedidos.html" with pedidos=pedidos_recientes %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-transparent"><h2 class="h6 mb-0 fw-semibold">Poca disponibilidad</h2></div>
+      <ul class="list-group list-group-flush">
+        {% for plato in platos_poca_disponibilidad %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="{% url 'menu:admin_editar' plato.pk %}">{{ plato.nombre }}</a>
+            <span class="badge {% if plato.agotado %}text-bg-danger{% else %}text-bg-warning{% endif %}">
+              {% if plato.agotado %}Agotado{% else %}{{ plato.cantidad_disponible }} disp.{% endif %}
+            </span>
+          </li>
+        {% empty %}
+          <li class="list-group-item small text-body-secondary">Todos los platos tienen buena disponibilidad.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% if pagina.has_other_pages %}
+  <nav aria-label="Paginación" class="mt-4">
+    <ul class="pagination justify-content-center flex-wrap">
+      <li class="page-item{% if not pagina.has_previous %} disabled{% endif %}">
+        <a class="page-link" aria-label="Anterior"
+           href="{% if pagina.has_previous %}{% querystring page=pagina.previous_page_number %}{% else %}#{% endif %}">&laquo;</a>
+      </li>
+      {% for numero in pagina.paginator.page_range %}
+        {% if numero == pagina.number %}
+          <li class="page-item active" aria-current="page"><span class="page-link">{{ numero }}</span></li>
+        {% elif numero >= pagina.number|add:-2 and numero <= pagina.number|add:2 %}
+          <li class="page-item"><a class="page-link" href="{% querystring page=numero %}">{{ numero }}</a></li>
+        {% endif %}
+      {% endfor %}
+      <li class="page-item{% if not pagina.has_next %} disabled{% endif %}">
+        <a class="page-link" aria-label="Siguiente"
+           href="{% if pagina.has_next %}{% querystring page=pagina.next_page_number %}{% else %}#{% endif %}">&raquo;</a>
+      </li>
+    </ul>
+    <p class="text-center small text-body-secondary mb-0">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</p>
+  </nav>
+{% endif %}

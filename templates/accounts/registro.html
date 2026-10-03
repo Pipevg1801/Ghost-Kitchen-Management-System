@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Registro{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-9 col-lg-7">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <h1 class="h4 fw-bold mb-1">Crear cuenta de cliente</h1>
+        <p class="text-body-secondary mb-4">Complete sus datos para realizar pedidos.</p>
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+        <form method="post" class="needs-validation" novalidate>
+          {% csrf_token %}
+          <div class="row">
+            {% for field in form %}
+              <div class="col-md-6">{% include "includes/form_field.html" %}</div>
+            {% endfor %}
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <a href="{% url 'accounts:login' %}" class="small">Ya tengo cuenta</a>
+            <button type="submit" class="btn btn-dark"><i class="bi bi-person-plus"></i> Registrarme</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

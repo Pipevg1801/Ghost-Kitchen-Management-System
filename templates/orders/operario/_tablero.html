@@ -1,0 +1,46 @@
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+      <div class="small text-body-secondary">Recibidos</div>
+      <div class="fs-2 fw-bold">{{ total_recibidos }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+      <div class="small text-body-secondary">En preparación</div>
+      <div class="fs-2 fw-bold">{{ total_en_preparacion }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+      <div class="small text-body-secondary">Listos hoy</div>
+      <div class="fs-2 fw-bold">{{ pedidos_listos|length }}</div>
+    </div></div>
+  </div>
+</div>
+
+<section aria-labelledby="titulo-activos" class="mb-5">
+  <h2 id="titulo-activos" class="h5 fw-semibold mb-3">Por procesar ({{ pedidos_activos|length }})</h2>
+  {% if pedidos_activos %}
+    <div class="row g-3">
+      {% for pedido in pedidos_activos %}
+        <div class="col-md-6 col-xl-4">{% include "orders/operario/_tarjeta.html" %}</div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-light border text-center py-4 mb-0">
+      <i class="bi bi-cup-hot fs-3 d-block mb-2"></i> No hay pedidos pendientes. ¡Cocina al día!
+    </div>
+  {% endif %}
+</section>
+
+{% if pedidos_listos %}
+  <section aria-labelledby="titulo-listos">
+    <h2 id="titulo-listos" class="h5 fw-semibold mb-3"><i class="bi bi-check-circle-fill"></i> Listos hoy</h2>
+    <div class="row g-3">
+      {% for pedido in pedidos_listos %}
+        <div class="col-md-6 col-xl-4">{% include "orders/operario/_tarjeta.html" %}</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static formato %}
+{% block title %}Menú{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+  <h1 class="h3 fw-bold mb-0 text-uppercase">Menú</h1>
+  {% if user.es_cliente %}
+    <a href="{% url 'orders:carrito' %}" class="indicador-carrito text-decoration-none text-body" aria-label="Ir al carrito">
+      <i class="bi bi-cart3 fs-3"></i>
+      <span class="badge rounded-pill text-bg-warning js-carrito-contador">{{ carrito.cantidad }}</span>
+    </a>
+  {% endif %}
+</div>
+
+<form method="get" class="mb-4" role="search">
+  <div class="input-group">
+    <span class="input-group-text"><i class="bi bi-search"></i></span>
+    <input type="search" name="q" value="{{ busqueda }}" class="form-control" placeholder="Buscar plato..."
+           aria-label="Buscar plato">
+    {% if busqueda %}<a href="{% url 'menu:catalogo' %}" class="btn btn-outline-secondary">Limpiar</a>{% endif %}
+  </div>
+</form>
+
+<div class="row g-4">
+  <section class="{% if user.es_cliente %}col-lg-8{% else %}col-12{% endif %}" aria-label="Platos del menú">
+    {% if not platos %}
+      <div class="alert alert-light border text-center py-4">No hay platos disponibles{% if busqueda %} para «{{ busqueda }}»{% endif %}.</div>
+    {% endif %}
+    <div class="d-flex flex-column gap-3">
+      {% for plato in platos %}
+        <article class="card shadow-sm border-0 tarjeta-plato{% if plato.agotado %} agotado{% endif %}">
+          <div class="card-body d-flex flex-wrap flex-md-nowrap gap-3 align-items-center">
+            <div class="flex-grow-1">
+              <h2 class="h5 mb-1">{{ plato.nombre }}</h2>
+              <div class="fs-5 fw-bold mb-1">{{ plato.precio|moneda }}</div>
+              {% if plato.descripcion %}<p class="text-body-secondary small mb-1">{{ plato.descripcion }}</p>{% endif %}
+              <div class="small">
+                {% if plato.agotado %}
+                  <span class="badge text-bg-secondary">Agotado</span>
+                {% else %}
+                  <span class="text-body-secondary">Disponibles:</span> <strong>{{ plato.cantidad_disponible }}</strong>
+                {% endif %}
+                {% if user.es_cliente %}
+                  <span class="ms-2 text-success js-en-carrito" data-plato="{{ plato.pk }}"
+                        {% if not plato.en_carrito %}hidden{% endif %}>
+                    <i class="bi bi-cart-check"></i> En tu carrito: <span>{{ plato.en_carrito }}</span>
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+            {% if user.es_cliente %}
+              <form method="post" action="{% url 'orders:carrito_agregar' %}" data-ajax
+                    class="d-flex gap-2 align-items-center needs-validation m-0" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="plato_id" value="{{ plato.pk }}">
+                <input type="hidden" name="siguiente" value="{{ request.get_full_path }}">
+                <label class="visually-hidden" for="cantidad-{{ plato.pk }}">Cantidad</label>
+                <input type="number" id="cantidad-{{ plato.pk }}" name="cantidad" value="1" min="1"
+                       max="{{ plato.cantidad_disponible|default:1 }}" class="form-control form-control-sm input-cantidad"
+                       required {% if plato.agotado %}disabled{% endif %}>
+                <button type="submit" class="btn btn-dark text-nowrap" {% if plato.agotado %}disabled{% endif %}>
+                  <i class="bi bi-plus-lg"></i> Agregar
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if user.es_cliente %}
+    <aside class="col-lg-4" aria-labelledby="titulo-carrito">
+      <div class="card shadow-sm border-0 seccion-carrito sticky-lg-top">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+          <h2 id="titulo-carrito" class="h5 mb-0"><i class="bi bi-cart3"></i> Tu carrito</h2>
+          <a href="{% url 'orders:carrito' %}" class="link-light small">Ver detalle</a>
+        </div>
+        <div class="card-body" data-carrito="compacto">
+          {% include "orders/includes/carrito_compacto.html" %}
+        </div>
+      </div>
+    </aside>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}{% if user.es_cliente %}<script src="{% static 'js/carrito.js' %}"></script>{% endif %}{% endblock %}

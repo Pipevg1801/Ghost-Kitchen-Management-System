@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Pedidos activos{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+  <h1 class="h3 fw-bold mb-0"><i class="bi bi-fire text-warning"></i> Pedidos activos</h1>
+  <span class="small text-body-secondary"><i class="bi bi-arrow-repeat"></i> Se actualiza cada 15 s</span>
+</div>
+<div data-autorefresh="{% url 'orders:operario_pedidos' %}" data-intervalo="15">
+  {% include "orders/operario/_tablero.html" %}
+</div>
+{% endblock %}

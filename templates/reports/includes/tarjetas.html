@@ -1,0 +1,30 @@
+{% load formato %}
+<div class="row g-3">
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 tarjeta-kpi"><div class="card-body">
+      <div class="small text-body-secondary"><i class="bi bi-receipt"></i> Pedidos {{ resumen.periodo_etiqueta|lower }}</div>
+      <div class="kpi-valor">{{ resumen.pedidos }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 tarjeta-kpi"><div class="card-body">
+      <div class="small text-body-secondary"><i class="bi bi-cash-stack"></i> Ingresos</div>
+      <div class="kpi-valor">{{ resumen.ingresos|moneda }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 tarjeta-kpi"><div class="card-body">
+      <div class="small text-body-secondary"><i class="bi bi-calculator"></i> Ticket promedio</div>
+      <div class="kpi-valor">{{ resumen.ticket_promedio|moneda }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 tarjeta-kpi"><div class="card-body">
+      <div class="small text-body-secondary"><i class="bi bi-x-circle"></i> Cancelados</div>
+      <div class="kpi-valor">{{ resumen.cancelados }}</div>
+    </div></div>
+  </div>
+</div>
+<p class="small text-body-secondary mt-2 mb-0">
+  Pedidos, ingresos y ticket promedio excluyen los pedidos cancelados. Ticket promedio = ingresos / pedidos.
+</p>

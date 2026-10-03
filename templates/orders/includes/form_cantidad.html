@@ -1,0 +1,20 @@
+{# Controles − cantidad + de un ítem del carrito. Requiere `item`. #}
+<div class="d-inline-flex align-items-center gap-1">
+  <form method="post" action="{% url 'orders:carrito_modificar' %}" data-ajax class="m-0">
+    {% csrf_token %}
+    <input type="hidden" name="plato_id" value="{{ item.plato.pk }}">
+    <input type="hidden" name="accion" value="disminuir">
+    <button type="submit" class="btn btn-outline-secondary btn-sm btn-cantidad"
+            aria-label="Disminuir {{ item.plato.nombre }}"><i class="bi bi-dash"></i></button>
+  </form>
+  <span class="cantidad-valor fw-semibold" aria-label="Cantidad">{{ item.cantidad }}</span>
+  <form method="post" action="{% url 'orders:carrito_modificar' %}" data-ajax class="m-0">
+    {% csrf_token %}
+    <input type="hidden" name="plato_id" value="{{ item.plato.pk }}">
+    <input type="hidden" name="accion" value="incrementar">
+    <button type="submit" class="btn btn-outline-secondary btn-sm btn-cantidad"
+            aria-label="Incrementar {{ item.plato.nombre }}"
+            {% if not item.puede_incrementar %}disabled title="Sin más disponibilidad"{% endif %}>
+      <i class="bi bi-plus"></i></button>
+  </form>
+</div>
