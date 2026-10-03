@@ -1,4 +1,4 @@
-"""Configuración del proyecto Dark Kitchen.
+"""Configuración del proyecto Restaurante.
 
 Los valores sensibles se leen de variables de entorno (archivo .env en local).
 """
