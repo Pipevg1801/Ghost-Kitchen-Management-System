@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "django_browser_reload",
     # Aplicaciones del proyecto
     "core",
     "accounts",
@@ -59,6 +60,8 @@ MIDDLEWARE = [
     "core.middleware.LoginRequeridoMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -156,3 +159,7 @@ LOGGING = {
     # Los 403/404 esperados (accesos por URL a otro rol) no necesitan traza completa.
     "loggers": {"django.request": {"level": "ERROR"}},
 }
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
