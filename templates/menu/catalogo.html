@@ -28,8 +28,19 @@
     {% endif %}
     <div class="d-flex flex-column gap-3">
       {% for plato in platos %}
+        {% ifchanged plato.categoria_id %}
+          <h2 class="h4 fw-bold text-uppercase text-body-secondary mt-3 mb-0">
+            <i class="bi bi-bookmark-fill text-warning"></i>
+            {% if plato.categoria %}{{ plato.categoria.nombre }}{% else %}Sin categoría{% endif %}
+          </h2>
+        {% endifchanged %}
         <article class="card shadow-sm border-0 tarjeta-plato{% if plato.agotado %} agotado{% endif %}">
           <div class="card-body d-flex flex-wrap flex-md-nowrap gap-3 align-items-center">
+            {% if plato.imagen %}
+              <img src="{{ plato.imagen.url }}" alt="{{ plato.nombre }}"
+                   class="rounded object-fit-cover flex-shrink-0"
+                   style="width: 96px; height: 96px;">
+            {% endif %}
             <div class="flex-grow-1">
               <h2 class="h5 mb-1">{{ plato.nombre }}</h2>
               <div class="fs-5 fw-bold mb-1">{{ plato.precio|moneda }}</div>
