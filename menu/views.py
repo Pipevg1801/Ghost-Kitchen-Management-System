@@ -13,6 +13,12 @@ from orders.cart import Carrito
 from .forms import PlatoForm
 from .models import Plato
 
+def _ordenar_por_categoria(queryset):
+    """Ordena los platos para que las categorías queden contiguas."""
+    return queryset.select_related("categoria").order_by(
+        "categoria__orden", "categoria__nombre", "nombre"
+    )
+
 
 def _filtrar_por_busqueda(queryset, termino):
     termino = (termino or "").strip()
@@ -24,7 +30,10 @@ def _filtrar_por_busqueda(queryset, termino):
 @rol_requerido(Rol.Nombre.CLIENTE, Rol.Nombre.OPERARIO)
 @require_GET
 def catalogo(request):
-    platos, busqueda = _filtrar_por_busqueda(Plato.objects.activos(), request.GET.get("q"))
+    platos, busqueda = _filtrar_por_busqueda(
+        _ordenar_por_categoria(Plato.objects.activos()),
+        request.GET.get("q"),
+    )
     contexto = {"platos": platos, "busqueda": busqueda}
     if request.user.es_cliente:
         carrito = Carrito(request)
