@@ -11,7 +11,7 @@ from accounts.permissions import AdministradorRequeridoMixin, administrador_requ
 from orders.cart import Carrito
 
 from .forms import PlatoForm
-from .models import Plato
+from .models import Categoria, Plato
 
 def _ordenar_por_categoria(queryset):
     """Ordena los platos para que las categorías queden contiguas."""
@@ -27,14 +27,31 @@ def _filtrar_por_busqueda(queryset, termino):
     return queryset, termino
 
 
+def _menu_publicado(request):
+    categoria = (request.GET.get("categoria") or "").strip()
+    platos = Plato.objects.activos()
+    if categoria:
+        platos = platos.de_categoria(categoria)
+    platos, busqueda = _filtrar_por_busqueda(_ordenar_por_categoria(platos), request.GET.get("q"))
+    return {
+        "platos": platos, "busqueda": busqueda, "categoria_activa": categoria,
+        "categorias": Categoria.objects.activas().filter(platos__activo=True).distinct(),
+    }
+
+
+@require_GET
+def restaurante(request):
+    """Escaparate público de platos activos; los pedidos conservan sus permisos."""
+    if request.user.is_authenticated and request.user.es_cliente:
+        return redirect("menu:catalogo")
+    return render(request, "menu/catalogo.html", {**_menu_publicado(request), "es_escaparate": True})
+
+
 @rol_requerido(Rol.Nombre.CLIENTE, Rol.Nombre.OPERARIO)
 @require_GET
 def catalogo(request):
-    platos, busqueda = _filtrar_por_busqueda(
-        _ordenar_por_categoria(Plato.objects.activos()),
-        request.GET.get("q"),
-    )
-    contexto = {"platos": platos, "busqueda": busqueda}
+    contexto = _menu_publicado(request)
+    platos = contexto["platos"]
     if request.user.es_cliente:
         carrito = Carrito(request)
         en_carrito = carrito.cantidades()

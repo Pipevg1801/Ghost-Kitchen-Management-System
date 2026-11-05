@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
-    "django_browser_reload",
     # Aplicaciones del proyecto
     "core",
     "accounts",
@@ -60,9 +59,11 @@ MIDDLEWARE = [
     "core.middleware.LoginRequeridoMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
+
+if DEBUG:
+    INSTALLED_APPS.append("django_browser_reload")
+    MIDDLEWARE.append("django_browser_reload.middleware.BrowserReloadMiddleware")
 
 ROOT_URLCONF = "config.urls"
 
@@ -119,9 +120,16 @@ LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "accounts:inicio"
 LOGOUT_REDIRECT_URL = "accounts:login"
 
-# Rutas accesibles sin sesión iniciada (el resto exige login vía middleware).
-LOGIN_EXEMPT_URL_NAMES = ("accounts:login", "accounts:registro")
-LOGIN_EXEMPT_PATH_PREFIXES = ("/static/", "/django-admin/")
+# La API de informes valida su propia autenticación y devuelve errores JSON.
+REPORTS_API_TOKEN = env("REPORTS_API_TOKEN", "")
+LOGIN_EXEMPT_URL_NAMES = (
+    "accounts:login", "accounts:registro", "accounts:inicio", "menu:restaurante",
+    "reports:api_informes",
+)
+LOGIN_EXEMPT_PATH_PREFIXES = ("/static/", "/django-admin/", "/media/platos/")
+if DEBUG:
+    # La recarga del frontend también debe funcionar en login y registro.
+    LOGIN_EXEMPT_PATH_PREFIXES += ("/__reload__/",)
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 60 * 60 * 8

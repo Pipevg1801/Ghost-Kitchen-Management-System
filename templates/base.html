@@ -3,60 +3,103 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Restaurante{% endblock %} · Restaurante</title>
+  <title>{% block title %}Restaurante{% endblock %} · Ghost Kitchen</title>
+  <meta name="theme-color" content="#006b43">
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <script src="{% static 'js/motion-preference.js' %}"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link href="{% static 'css/app.css' %}" rel="stylesheet">
+  <link href="{% static 'css/app.css' %}?v=esmooth-20261007-v2" rel="stylesheet">
+  <link href="{% static 'css/restaurant.css' %}?v=green-20261008" rel="stylesheet">
   {% block extra_head %}{% endblock %}
 </head>
-<body class="{% block body_class %}bg-body-tertiary{% endblock %}">
-{% if user.is_authenticated %}
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
-    <div class="container">
-      <a class="navbar-brand fw-semibold" href="{% url 'accounts:inicio' %}">
-        <i class="bi bi-fire text-warning"></i> Restaurante
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPrincipal"
-              aria-controls="navPrincipal" aria-expanded="false" aria-label="Mostrar navegación">
-        <span class="navbar-toggler-icon"></span>
+<body class="{% if user.is_authenticated %}app-authenticated{% else %}app-public{% endif %}{% if not user.is_authenticated or user.es_cliente or es_escaparate %} storefront{% endif %} {% block body_class %}{% endblock %}">
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+{% if not user.is_authenticated or user.es_cliente or es_escaparate %}
+  <header class="restaurant-header">
+    <a class="restaurant-brand" href="{% url 'menu:restaurante' %}" aria-label="Ghost Kitchen, inicio"><i class="bi bi-fire" aria-hidden="true"></i><span>Ghost Kitchen<small>El sabor de un buen momento.</small></span></a>
+    <button class="btn restaurant-nav-toggle d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navRestaurante" aria-controls="navRestaurante" aria-expanded="false" aria-label="Mostrar navegación"><i class="bi bi-list" aria-hidden="true"></i></button>
+    <nav class="restaurant-nav collapse d-lg-flex" id="navRestaurante" aria-label="Navegación del restaurante">
+      <a class="restaurant-nav-link" href="{% if user.es_cliente %}{% url 'menu:catalogo' %}{% else %}{% url 'menu:restaurante' %}{% endif %}#platos">Nuestro menú</a>
+      {% if user.es_cliente %}<a class="restaurant-nav-link" href="{% url 'orders:mis_pedidos' %}">Mis pedidos</a>{% else %}<a class="restaurant-nav-link" href="{% url 'menu:restaurante' %}#como-pedir">Cómo pedir</a>{% endif %}
+      {% if user.es_cliente %}
+        <div class="dropdown restaurant-account">
+          <button class="btn restaurant-account-toggle dropdown-toggle" data-bs-toggle="dropdown" type="button"><i class="bi bi-person" aria-hidden="true"></i> {{ user.get_short_name }}</button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts:perfil' %}">Mi perfil</a></li>
+            <li><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="dropdown-item" type="submit">Cerrar sesión</button></form></li>
+          </ul>
+        </div>
+        <a href="{% url 'orders:carrito' %}" class="btn restaurant-bag"><i class="bi bi-bag" aria-hidden="true"></i> Mi pedido <span class="badge js-carrito-contador">{{ carrito_cantidad|default:0 }}</span></a>
+      {% elif user.is_authenticated %}
+        <a href="{% url 'accounts:inicio' %}" class="btn restaurant-bag">Mi espacio</a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="restaurant-nav-link">Ingresar</a>
+        <a href="{% url 'menu:restaurante' %}#platos" class="btn restaurant-bag">Elegir mi comida</a>
+      {% endif %}
+    </nav>
+  </header>
+{% elif user.is_authenticated %}
+  <header class="app-topbar">
+    <div class="topbar-context">
+      <button class="btn sidebar-toggle d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navPrincipal"
+              aria-controls="navPrincipal" aria-expanded="false" aria-label="Mostrar navegación"><i class="bi bi-list"></i>
       </button>
-      <div class="collapse navbar-collapse" id="navPrincipal">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <span class="topbar-label">Restaurante <i class="bi bi-chevron-right" aria-hidden="true"></i> <strong>{{ user.rol.nombre }}</strong></span>
+    </div>
+    <div class="topbar-actions">
+      {% if user.es_cliente %}
+        <a href="{% url 'orders:carrito' %}" class="btn cart-topbar" aria-label="Ver carrito">
+          <i class="bi bi-bag"></i><span class="d-none d-sm-inline">Tu carrito</span>
+          <span class="badge js-carrito-contador">{{ carrito_cantidad|default:0 }}</span>
+        </a>
+      {% endif %}
+      <a class="user-avatar" href="{% url 'accounts:perfil' %}" aria-label="Mi perfil: {{ user.nombre }}">{{ user.nombre|first|upper }}</a>
+    </div>
+  </header>
+  <aside class="app-sidebar collapse d-lg-flex" id="navPrincipal" aria-label="Navegación principal">
+    <a class="kitchen-brand" href="{% url 'accounts:inicio' %}">
+      <span class="brand-symbol"><i class="bi bi-fire" aria-hidden="true"></i></span>
+      <span>Ghost Kitchen<small>Restaurante · Pedidos</small></span>
+    </a>
+    <div class="sidebar-caption">{% if user.es_cliente %}TU PRÓXIMO ANTOJO{% else %}TU ESPACIO DE TRABAJO{% endif %}</div>
+    <nav>
+        <ul class="sidebar-links">
           {% for item in menu_navegacion %}
-            <li class="nav-item">
-              <a class="nav-link{% if item.activo %} active{% endif %}" href="{{ item.url }}"
+            <li>
+              <a class="sidebar-link{% if item.activo %} active{% endif %}" href="{{ item.url }}"
                  {% if item.activo %}aria-current="page"{% endif %}>
-                <i class="bi {{ item.icono }}"></i> {{ item.etiqueta }}
+                <i class="bi {{ item.icono }}" aria-hidden="true"></i><span>{{ item.etiqueta }}</span>
+                {% if item.activo %}<span class="nav-active-dot" aria-hidden="true"></span>{% endif %}
               </a>
             </li>
           {% endfor %}
         </ul>
-        {% if user.es_cliente %}
-          <a href="{% url 'orders:carrito' %}" class="btn btn-warning btn-sm position-relative me-lg-3 mb-2 mb-lg-0"
-             aria-label="Ver carrito">
-            <i class="bi bi-cart3"></i> Carrito
-            <span class="badge rounded-pill text-bg-dark js-carrito-contador">{{ carrito_cantidad|default:0 }}</span>
-          </a>
-        {% endif %}
-        <div class="d-flex align-items-center gap-3 text-light">
-          <span class="small">
-            <i class="bi bi-person-circle"></i> {{ user.nombre }}
-            <span class="badge text-bg-warning ms-1">{{ user.rol.nombre }}</span>
-          </span>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-note"><span class="sidebar-note-icon"><i class="bi bi-cup-hot"></i></span><p>Cada pedido cuenta.<small>Todo listo para tu próxima acción.</small></p></div>
+      {% include 'includes/motion_select.html' with location='sidebar' %}
+      <div class="sidebar-user">
+        <span class="user-avatar">{{ user.nombre|first|upper }}</span>
+        <div><strong>{{ user.nombre }}</strong><small>{{ user.rol.nombre }}</small></div>
+      </div>
           <form method="post" action="{% url 'accounts:logout' %}" class="m-0">
             {% csrf_token %}
-            <button type="submit" class="btn btn-outline-light btn-sm">
+            <button type="submit" class="btn sidebar-logout">
               <i class="bi bi-box-arrow-right"></i> Cerrar sesión
             </button>
           </form>
-        </div>
-      </div>
     </div>
-  </nav>
+  </aside>
+{% else %}
+  <header class="public-topbar">
+    <a class="kitchen-brand" href="{% url 'accounts:login' %}"><span class="brand-symbol"><i class="bi bi-fire" aria-hidden="true"></i></span><span>Ghost Kitchen<small>Restaurante · Pedidos</small></span></a>
+    {% include 'includes/motion_select.html' with location='public' %}
+  </header>
 {% endif %}
 
-<main class="{% block main_class %}container py-4{% endblock %}">
+<main id="contenido" class="app-main {% block main_class %}container-fluid{% endblock %}">
   <div class="mensajes-sistema" id="mensajes-sistema" aria-live="polite">
     {% for message in messages %}
       <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -68,9 +111,16 @@
   {% block content %}{% endblock %}
 </main>
 
-<footer class="text-center text-body-secondary small py-3">
-  Restaurante · Gestión de pedidos
+{% if not user.is_authenticated or user.es_cliente or es_escaparate %}
+<footer class="restaurant-footer">
+  <div><a class="restaurant-brand" href="{% url 'menu:restaurante' %}"><i class="bi bi-fire" aria-hidden="true"></i><span>Ghost Kitchen<small>Algo rico siempre es un buen plan.</small></span></a><p>Elige, pide y disfruta. Nosotros nos encargamos de cocinar.</p></div>
+  <div class="restaurant-footer-links"><a href="{% url 'menu:restaurante' %}#platos">Ver el menú</a><a href="{% url 'accounts:login' %}">Mi cuenta</a>{% include 'includes/motion_select.html' with location='restaurant' %}</div>
 </footer>
+{% else %}
+<footer class="app-footer">
+  <span>Ghost Kitchen <span aria-hidden="true">/</span> Gestión de pedidos</span><span>Hecho para el ritmo de tu cocina <i class="bi bi-fire" aria-hidden="true"></i></span>
+</footer>
+{% endif %}
 
 <div class="modal fade" id="modal-confirmacion" tabindex="-1" aria-labelledby="modal-confirmacion-titulo" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -90,7 +140,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script src="{% static 'js/app.js' %}"></script>
+<script src="{% static 'js/app.js' %}?v=esmooth-20261007-v2"></script>
+<script src="{% static 'js/esmooth.js' %}?v=esmooth-20261007-v2"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

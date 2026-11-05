@@ -25,6 +25,9 @@
     cerrar.setAttribute("aria-label", "Cerrar");
     alerta.appendChild(cerrar);
     contenedor.replaceChildren(alerta);
+    window.KitchenUI?.animate(alerta,
+      [{ opacity: 0, translate: nivel === "danger" ? "-5px 0" : "0 -6px" }, { opacity: 1, translate: "0 0" }],
+      { duration: 320, easing: "cubic-bezier(.16,1,.3,1)" });
     if (nivel === "success" || nivel === "info") {
       setTimeout(() => bootstrap.Alert.getOrCreateInstance(alerta).close(), 4000);
     }
@@ -33,7 +36,11 @@
   async function refrescarBloque(bloque) {
     try {
       const respuesta = await fetch(bloque.dataset.autorefresh, { headers: CABECERAS_AJAX });
-      if (respuesta.ok) bloque.innerHTML = await respuesta.text();
+      if (respuesta.ok) {
+        const html = await respuesta.text();
+        if (window.KitchenUI) window.KitchenUI.replace(bloque, html);
+        else bloque.innerHTML = html;
+      }
     } catch (error) {
       // Sin conexión momentánea: se reintenta en el siguiente ciclo.
     }

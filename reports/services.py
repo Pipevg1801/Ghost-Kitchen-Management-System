@@ -34,8 +34,7 @@ def pedidos_del_periodo(periodo):
     return pedidos
 
 
-def resumen_consolidado(periodo="hoy"):
-    pedidos = pedidos_del_periodo(periodo)
+def resumen_de(pedidos):
     no_cancelado = ~Q(estado=Estado.CANCELADO)
     datos = pedidos.aggregate(
         pedidos=Count("id", filter=no_cancelado),
@@ -48,14 +47,19 @@ def resumen_consolidado(periodo="hoy"):
         (datos["ingresos"] / datos["pedidos"]).quantize(Decimal("0.01"))
         if datos["pedidos"] else CERO
     )
+    return datos
+
+
+def resumen_consolidado(periodo="hoy"):
+    datos = resumen_de(pedidos_del_periodo(periodo))
     datos["periodo"] = periodo if periodo in PERIODOS else "hoy"
     datos["periodo_etiqueta"] = PERIODOS[datos["periodo"]][0]
     return datos
 
 
-def pedidos_por_estado(periodo="hoy"):
+def conteos_por_estado(pedidos):
     conteos = dict(
-        pedidos_del_periodo(periodo).order_by().values_list("estado").annotate(n=Count("id"))
+        pedidos.order_by().values_list("estado").annotate(n=Count("id"))
     )
     return [
         {"estado": valor, "etiqueta": etiqueta, "cantidad": conteos.get(valor, 0)}
@@ -63,15 +67,27 @@ def pedidos_por_estado(periodo="hoy"):
     ]
 
 
-def platos_mas_vendidos(periodo="hoy", limite=5):
+def pedidos_por_estado(periodo="hoy"):
+    return conteos_por_estado(pedidos_del_periodo(periodo))
+
+
+def ventas_por_plato(pedidos):
     subtotal = ExpressionWrapper(F("cantidad") * F("precio_unitario"), output_field=DINERO)
-    return list(
+    return (
         PedidoDetalle.objects
-        .filter(pedido__in=pedidos_del_periodo(periodo).exclude(estado=Estado.CANCELADO))
-        .values("plato__nombre")
+        .filter(pedido__in=pedidos.no_cancelados())
+        .values("plato_id", "plato__nombre", "plato__categoria_id")
         .annotate(unidades=Sum("cantidad"), ingresos=Sum(subtotal))
-        .order_by("-unidades", "plato__nombre")[:limite]
+        .order_by("-unidades", "plato__nombre")
     )
+
+
+def platos_mas_vendidos(periodo="hoy", limite=5):
+    return [
+        {"plato__nombre": fila["plato__nombre"], "unidades": fila["unidades"],
+         "ingresos": fila["ingresos"]}
+        for fila in ventas_por_plato(pedidos_del_periodo(periodo))[:limite]
+    ]
 
 
 def datos_grafico(dias=7):

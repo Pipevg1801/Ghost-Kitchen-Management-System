@@ -5,6 +5,7 @@ from . import views
 app_name = "menu"
 
 urlpatterns = [
+    path("restaurante/", views.restaurante, name="restaurante"),
     path("menu/", views.catalogo, name="catalogo"),
     path("admin-panel/menu/", views.PlatoListaView.as_view(), name="admin_lista"),
     path("admin-panel/menu/agregar/", views.PlatoCrearView.as_view(), name="admin_crear"),

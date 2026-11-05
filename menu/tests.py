@@ -1,14 +1,18 @@
 from decimal import Decimal
+from io import BytesIO
+from tempfile import TemporaryDirectory
 
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
+from PIL import Image
 
 from core.tests_utils import UsuariosPorRolMixin, crear_plato
 from orders.services import confirmar_pedido
 
-from .models import Plato
+from .models import Categoria, Plato
 
 
 class PlatoModelTests(TestCase):
@@ -86,6 +90,34 @@ class CatalogoViewTests(UsuariosPorRolMixin, TestCase):
         self.client.force_login(self.cliente)
         respuesta = self.client.get(reverse("menu:catalogo"), {"q": "inexistente"})
         self.assertNotContains(respuesta, "Ítem del menú #1")
+
+
+class RestaurantePublicoTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.categoria = Categoria.objects.create(nombre="Bowls", slug="bowls")
+        cls.plato = crear_plato(nombre="Bowl de prueba", categoria=cls.categoria)
+        cls.otro = crear_plato(nombre="Pasta de prueba")
+        cls.oculto = crear_plato(nombre="Producto oculto", activo=False)
+
+    def test_escaparate_publica_solo_platos_activos(self):
+        respuesta = self.client.get(reverse("menu:restaurante"))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, self.plato.nombre)
+        self.assertNotContains(respuesta, self.oculto.nombre)
+        self.assertNotContains(respuesta, reverse("orders:carrito_agregar"))
+
+    def test_categoria_y_busqueda_se_combinan(self):
+        respuesta = self.client.get(reverse("menu:restaurante"), {"categoria": "bowls", "q": "prueba"})
+        self.assertEqual(list(respuesta.context["platos"]), [self.plato])
+        respuesta = self.client.get(reverse("menu:restaurante"), {"categoria": "bowls", "q": "Pasta"})
+        self.assertFalse(respuesta.context["platos"].exists())
+
+    def test_ver_menu_no_autoriza_pedidos_anonimos(self):
+        respuesta = self.client.post(reverse("orders:carrito_agregar"), {"plato_id": self.plato.pk, "cantidad": 1})
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertTrue(respuesta.url.startswith(reverse("accounts:login")))
+        self.assertNotIn("carrito", self.client.session)
 
 
 class GestionMenuViewTests(UsuariosPorRolMixin, TestCase):
@@ -170,3 +202,35 @@ class PermisosMenuTests(UsuariosPorRolMixin, TestCase):
     def test_administrador_no_usa_catalogo_de_cliente(self):
         self.client.force_login(self.admin)
         self.assertEqual(self.client.get(reverse("menu:catalogo")).status_code, 403)
+
+
+class ImagenPlatoTests(UsuariosPorRolMixin, TestCase):
+    def setUp(self):
+        self.media = TemporaryDirectory()
+        self.addCleanup(self.media.cleanup)
+        self.configuracion = self.settings(MEDIA_ROOT=self.media.name)
+        self.configuracion.enable()
+        self.addCleanup(self.configuracion.disable)
+        self.client.force_login(self.admin)
+
+    def test_editar_producto_conserva_imagen_y_catalogo_la_muestra(self):
+        archivo = BytesIO()
+        Image.new("RGB", (20, 20), "orange").save(archivo, format="PNG")
+        datos = {**DATOS_PLATO, "imagen": SimpleUploadedFile("plato.png", archivo.getvalue(), content_type="image/png")}
+        self.client.post(reverse("menu:admin_crear"), datos)
+        plato = Plato.objects.get(nombre=DATOS_PLATO["nombre"])
+        imagen_original = plato.imagen.name
+
+        respuesta = self.client.post(reverse("menu:admin_editar", args=[plato.pk]), {**DATOS_PLATO, "precio": "16000"})
+        self.assertEqual(respuesta.status_code, 302)
+        plato.refresh_from_db()
+        self.assertEqual(plato.imagen.name, imagen_original)
+        self.assertEqual(plato.precio, Decimal("16000"))
+        self.client.force_login(self.cliente)
+        self.assertContains(self.client.get(reverse("menu:catalogo")), plato.imagen.url)
+
+    def test_rechaza_archivo_que_no_es_imagen(self):
+        archivo = SimpleUploadedFile("plato.txt", b"no es una imagen", content_type="text/plain")
+        respuesta = self.client.post(reverse("menu:admin_crear"), {**DATOS_PLATO, "imagen": archivo})
+        self.assertIn("imagen", respuesta.context["form"].errors)
+        self.assertFalse(Plato.objects.filter(nombre=DATOS_PLATO["nombre"]).exists())

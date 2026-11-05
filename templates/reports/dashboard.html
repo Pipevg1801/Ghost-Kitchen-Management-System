@@ -1,10 +1,16 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
-  <h1 class="h3 fw-bold mb-0"><i class="bi bi-speedometer2"></i> Dashboard administrativo</h1>
-  <span class="small text-body-secondary">{% now "l d \d\e F \d\e Y" %}</span>
+<div class="page-heading">
+  <div><span class="eyebrow">DASHBOARD ADMINISTRATIVO</span><h1>El pulso de tu cocina<span class="heading-dot">.</span></h1><p>Hola, {{ user.nombre }}. Así va tu restaurante hoy.</p></div>
+  <div class="date-chip"><i class="bi bi-calendar3"></i>{% now "d M, Y" %}</div>
 </div>
+<section class="kitchen-banner" aria-label="Resumen operativo">
+  <div><span class="eyebrow">DE LA COCINA A LA PUERTA</span><h2>Cada pedido, en su punto.</h2><p><strong>{{ resumen.activos }}</strong> pedidos activos · <strong>{{ total_platos }}</strong> platos en tu menú</p><a href="{% url 'reports:tabular' %}" class="btn btn-dark">Ver pedidos <i class="bi bi-arrow-up-right"></i></a></div>
+  <img class="banner-plate" src="{% static 'img/kitchen-plate.svg' %}" width="520" height="440" alt="">
+  <span class="banner-note"><i class="bi bi-check2-circle"></i> Todo en un mismo lugar</span>
+</section>
 
 <section class="mb-4" aria-label="Indicadores de hoy">
   {% include "reports/includes/tarjetas.html" %}
@@ -14,7 +20,7 @@
   <div class="col-md-4">
     <a href="{% url 'menu:admin_lista' %}" class="card border-0 shadow-sm h-100 text-decoration-none acceso-rapido">
       <div class="card-body">
-        <i class="bi bi-journal-text fs-2"></i>
+        <span class="quick-icon"><i class="bi bi-journal-text"></i></span><i class="bi bi-arrow-up-right quick-arrow" aria-hidden="true"></i>
         <h2 class="h5 mt-2 mb-1">Gestión del menú</h2>
         <p class="small text-body-secondary mb-0">{{ total_platos }} platos visibles en el menú.</p>
       </div>
@@ -23,7 +29,7 @@
   <div class="col-md-4">
     <a href="{% url 'reports:tabular' %}" class="card border-0 shadow-sm h-100 text-decoration-none acceso-rapido">
       <div class="card-body">
-        <i class="bi bi-receipt fs-2"></i>
+        <span class="quick-icon"><i class="bi bi-receipt"></i></span><i class="bi bi-arrow-up-right quick-arrow" aria-hidden="true"></i>
         <h2 class="h5 mt-2 mb-1">Pedidos</h2>
         <p class="small text-body-secondary mb-0">{{ resumen.activos }} pedidos activos en este momento.</p>
       </div>
@@ -32,7 +38,7 @@
   <div class="col-md-4">
     <a href="{% url 'reports:informes' %}" class="card border-0 shadow-sm h-100 text-decoration-none acceso-rapido">
       <div class="card-body">
-        <i class="bi bi-bar-chart-line fs-2"></i>
+        <span class="quick-icon"><i class="bi bi-bar-chart-line"></i></span><i class="bi bi-arrow-up-right quick-arrow" aria-hidden="true"></i>
         <h2 class="h5 mt-2 mb-1">Informes</h2>
         <p class="small text-body-secondary mb-0">Consolidado, gráfico y tabular.</p>
       </div>
@@ -62,7 +68,7 @@
             </span>
           </li>
         {% empty %}
-          <li class="list-group-item small text-body-secondary">Todos los platos tienen buena disponibilidad.</li>
+          <li class="list-group-item inventory-clear"><span><i class="bi bi-check2-circle"></i></span><strong>Todo en su punto</strong><p>Todos los platos tienen buena disponibilidad.</p><a href="{% url 'menu:admin_lista' %}" class="btn btn-outline-dark btn-sm">Revisar menú <i class="bi bi-arrow-right"></i></a></li>
         {% endfor %}
       </ul>
     </div>

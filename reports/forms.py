@@ -49,3 +49,17 @@ class FiltroPedidosForm(BootstrapFormMixin, forms.Form):
         if not self.is_valid():
             return {}
         return {clave: valor for clave, valor in self.cleaned_data.items() if valor}
+
+
+class FiltrosInformeAPIForm(FiltroPedidosForm):
+    desde = forms.DateField(required=False, input_formats=("%Y-%m-%d",))
+    hasta = forms.DateField(required=False, input_formats=("%Y-%m-%d",))
+    pagina = forms.IntegerField(required=False, min_value=1)
+    por_pagina = forms.IntegerField(required=False, min_value=1, max_value=250)
+
+    def clean(self):
+        datos = super().clean()
+        desconocidos = set(self.data) - self.fields.keys()
+        if desconocidos:
+            self.add_error(None, "Se enviaron parámetros de consulta no admitidos.")
+        return datos

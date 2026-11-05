@@ -1,55 +1,66 @@
 {% extends "base.html" %}
 {% load static formato %}
 {% block title %}Menú{% endblock %}
+{% block body_class %}restaurant-menu{% endblock %}
 {% block content %}
-<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
-  <h1 class="h3 fw-bold mb-0 text-uppercase">Menú</h1>
-  {% if user.es_cliente %}
-    <a href="{% url 'orders:carrito' %}" class="indicador-carrito text-decoration-none text-body" aria-label="Ir al carrito">
-      <i class="bi bi-cart3 fs-3"></i>
-      <span class="badge rounded-pill text-bg-warning js-carrito-contador">{{ carrito.cantidad }}</span>
-    </a>
-  {% endif %}
-</div>
+<section class="menu-hero" aria-labelledby="menu-hero-title">
+  <div class="menu-hero-content">
+    <span class="hero-intro"><span class="status-dot"></span> Un buen día empieza con algo rico</span>
+    <h1 id="menu-hero-title">Hoy se come<br>bien.</h1>
+    <p>Una burger jugosa, tu bowl favorito o una pasta para enamorarse. Encuentra lo que se te antoja y déjanos cocinar para ti.</p>
+    <a href="#platos" class="btn menu-order-button">Quiero ver el menú <i class="bi bi-arrow-down" aria-hidden="true"></i></a>
+    <span class="hero-menu-note">Hecho para disfrutar, a tu gusto.</span>
+  </div>
+  <div class="menu-hero-food"><img class="menu-hero-image" src="{% static 'img/food/burger.webp' %}" alt="Hamburguesa de la casa con queso y papas rústicas" width="1536" height="1024" fetchpriority="high"><span class="hero-food-name">Burger de la casa <i class="bi bi-heart" aria-hidden="true"></i></span></div>
+  <span class="hero-image-caption">Imagen ilustrativa</span>
+</section>
 
-<form method="get" class="mb-4" role="search">
+<div id="platos" class="menu-section-heading"><div><span class="section-kicker">De nuestra cocina a tu mesa</span><h2>Encuentra tu próximo favorito.</h2></div><p>Comida que se disfruta<br>desde el primer bocado.</p></div>
+<div class="menu-tools">
+<nav class="category-navigation" aria-label="Categorías del menú">
+  <a href="?q={{ busqueda|urlencode }}#platos" class="category-link{% if not categoria_activa %} active{% endif %}" {% if not categoria_activa %}aria-current="true"{% endif %}>Todo el menú</a>
+  {% for categoria in categorias %}
+    <a class="category-link{% if categoria_activa == categoria.slug %} active{% endif %}" href="?categoria={{ categoria.slug }}&amp;q={{ busqueda|urlencode }}#platos" {% if categoria_activa == categoria.slug %}aria-current="true"{% endif %}>{{ categoria.nombre }}</a>
+  {% endfor %}
+</nav>
+<form method="get" class="menu-search" role="search" action="#platos">
+  {% if categoria_activa %}<input type="hidden" name="categoria" value="{{ categoria_activa }}">{% endif %}
   <div class="input-group">
     <span class="input-group-text"><i class="bi bi-search"></i></span>
     <input type="search" name="q" value="{{ busqueda }}" class="form-control" placeholder="Buscar plato..."
            aria-label="Buscar plato">
-    {% if busqueda %}<a href="{% url 'menu:catalogo' %}" class="btn btn-outline-secondary">Limpiar</a>{% endif %}
+    {% if busqueda %}<a href="?categoria={{ categoria_activa|urlencode }}#platos" class="btn btn-outline-secondary">Limpiar</a>{% endif %}
+    <button type="submit" class="btn btn-dark" aria-label="Buscar"><i class="bi bi-arrow-right" aria-hidden="true"></i></button>
   </div>
 </form>
+</div>
 
-<div class="row g-4">
-  <section class="{% if user.es_cliente %}col-lg-8{% else %}col-12{% endif %}" aria-label="Platos del menú">
+  <section class="food-menu" aria-label="Platos del menú">
     {% if not platos %}
       <div class="alert alert-light border text-center py-4">No hay platos disponibles{% if busqueda %} para «{{ busqueda }}»{% endif %}.</div>
     {% endif %}
-    <div class="d-flex flex-column gap-3">
+    <div class="menu-grid">
       {% for plato in platos %}
-        {% ifchanged plato.categoria_id %}
-          <h2 class="h4 fw-bold text-uppercase text-body-secondary mt-3 mb-0">
-            <i class="bi bi-bookmark-fill text-warning"></i>
-            {% if plato.categoria %}{{ plato.categoria.nombre }}{% else %}Sin categoría{% endif %}
-          </h2>
-        {% endifchanged %}
-        <article class="card shadow-sm border-0 tarjeta-plato{% if plato.agotado %} agotado{% endif %}">
-          <div class="card-body d-flex flex-wrap flex-md-nowrap gap-3 align-items-center">
+        <article id="plato-{{ plato.pk }}" class="card border-0 tarjeta-plato{% if plato.agotado %} agotado{% endif %}">
+          <div class="dish-art">
             {% if plato.imagen %}
-              <img src="{{ plato.imagen.url }}" alt="{{ plato.nombre }}"
-                   class="rounded object-fit-cover flex-shrink-0"
-                   style="width: 96px; height: 96px;">
+              <img src="{{ plato.imagen.url }}" alt="{{ plato.nombre }}" class="dish-photo" loading="lazy">
+              {% if 'demo/' in plato.imagen.name %}<span class="food-image-caption">Imagen ilustrativa</span>{% endif %}
+            {% else %}
+              <img src="{% static 'img/kitchen-plate.svg' %}" alt="Ilustración de cocina" class="dish-photo" loading="lazy">
             {% endif %}
+          </div>
+          <div class="card-body d-flex flex-column gap-3">
             <div class="flex-grow-1">
+              {% if plato.categoria %}<span class="food-category">{{ plato.categoria.nombre }}</span>{% endif %}
               <h2 class="h5 mb-1">{{ plato.nombre }}</h2>
-              <div class="fs-5 fw-bold mb-1">{{ plato.precio|moneda }}</div>
+              <div class="dish-price">{{ plato.precio|moneda }}</div>
               {% if plato.descripcion %}<p class="text-body-secondary small mb-1">{{ plato.descripcion }}</p>{% endif %}
               <div class="small">
                 {% if plato.agotado %}
                   <span class="badge text-bg-secondary">Agotado</span>
                 {% else %}
-                  <span class="text-body-secondary">Disponibles:</span> <strong>{{ plato.cantidad_disponible }}</strong>
+                  <span class="food-available"><i class="bi bi-check2" aria-hidden="true"></i> Listo para pedir</span>
                 {% endif %}
                 {% if user.es_cliente %}
                   <span class="ms-2 text-success js-en-carrito" data-plato="{{ plato.pk }}"
@@ -61,7 +72,7 @@
             </div>
             {% if user.es_cliente %}
               <form method="post" action="{% url 'orders:carrito_agregar' %}" data-ajax
-                    class="d-flex gap-2 align-items-center needs-validation m-0" novalidate>
+                    class="d-flex gap-2 align-items-center needs-validation m-0 dish-actions" novalidate>
                 {% csrf_token %}
                 <input type="hidden" name="plato_id" value="{{ plato.pk }}">
                 <input type="hidden" name="siguiente" value="{{ request.get_full_path }}">
@@ -73,6 +84,8 @@
                   <i class="bi bi-plus-lg"></i> Agregar
                 </button>
               </form>
+            {% elif es_escaparate %}
+              <a class="btn btn-dark guest-order" href="{% url 'accounts:login' %}?next={% url 'menu:catalogo' %}%23plato-{{ plato.pk }}">Lo quiero <i class="bi bi-plus-lg" aria-hidden="true"></i></a>
             {% endif %}
           </div>
         </article>
@@ -81,10 +94,12 @@
   </section>
 
   {% if user.es_cliente %}
-    <aside class="col-lg-4" aria-labelledby="titulo-carrito">
-      <div class="card shadow-sm border-0 seccion-carrito sticky-lg-top">
+    <button class="btn restaurant-floating-cart" type="button" data-bs-toggle="offcanvas" data-bs-target="#carritoMenu" aria-controls="carritoMenu"><i class="bi bi-bag-check" aria-hidden="true"></i> Ver mi pedido <span class="badge js-carrito-contador">{{ carrito.cantidad }}</span></button>
+    <aside class="offcanvas offcanvas-end" tabindex="-1" id="carritoMenu" aria-labelledby="titulo-carrito">
+      <div class="offcanvas-header"><h2 class="h4" id="titulo-carrito">Tu pedido</h2><button class="btn-close" type="button" data-bs-dismiss="offcanvas" aria-label="Cerrar pedido"></button></div>
+      <div class="offcanvas-body seccion-carrito">
         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-          <h2 id="titulo-carrito" class="h5 mb-0"><i class="bi bi-cart3"></i> Tu carrito</h2>
+          <span class="h5 mb-0"><i class="bi bi-cart3"></i> Tus favoritos</span>
           <a href="{% url 'orders:carrito' %}" class="link-light small">Ver detalle</a>
         </div>
         <div class="card-body" data-carrito="compacto">
@@ -93,6 +108,9 @@
       </div>
     </aside>
   {% endif %}
-</div>
+<section id="como-pedir" class="restaurant-howto" aria-labelledby="como-pedir-title">
+  <div><span class="section-kicker">Sin complicaciones</span><h2 id="como-pedir-title">Tú eliges.<br>Nosotros cocinamos.</h2><p>El plan más rico del día empieza con un antojo.</p></div>
+  <ol><li><span>1</span><div><h3>Encuentra tu favorito</h3><p>Explora el menú y añade lo que más te guste.</p></div></li><li><span>2</span><div><h3>Hazlo tuyo</h3><p>Revisa las cantidades y confirma tu pedido.</p></div></li><li><span>3</span><div><h3>Prepárate para disfrutar</h3><p>Sigue el estado de tu pedido mientras cocinamos.</p></div></li></ol>
+</section>
 {% endblock %}
-{% block extra_js %}{% if user.es_cliente %}<script src="{% static 'js/carrito.js' %}"></script>{% endif %}{% endblock %}
+{% block extra_js %}{% if user.es_cliente %}<script src="{% static 'js/carrito.js' %}?v=esmooth-20261007-v2"></script>{% endif %}{% endblock %}

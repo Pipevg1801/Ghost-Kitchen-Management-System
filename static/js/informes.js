@@ -32,7 +32,7 @@
   const opcionesBase = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 300 },
+    animation: { duration: window.KitchenMotion?.enabled ? 440 : 0 },
     interaction: { mode: "index", intersect: false },
     plugins: { legend: { display: false } },
   };
@@ -113,7 +113,7 @@
       pointHoverRadius: 6,
       pointBorderColor: SUPERFICIE,
       pointBorderWidth: 2,
-      tension: 0,
+      tension: .25,
     }];
     graficoIngresos.update();
 
@@ -134,6 +134,12 @@
   }
 
   selectorDias.addEventListener("change", cargar);
+  document.addEventListener("dk:motion", () => {
+    [graficoDiario, graficoEstados, graficoIngresos].forEach(grafico => {
+      grafico.options.animation = { duration: window.KitchenMotion.enabled ? 440 : 0 };
+      grafico.update("none");
+    });
+  });
   setInterval(() => { if (!document.hidden) cargar(); }, 60000);
   cargar();
 })();

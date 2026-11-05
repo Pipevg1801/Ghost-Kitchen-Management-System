@@ -106,12 +106,15 @@ class LoginTests(UsuariosBaseTestCase):
 
 class AccesoNoAutorizadoTests(UsuariosBaseTestCase):
     def test_anonimo_redirigido_a_login(self):
-        for nombre_url in ("accounts:inicio", "accounts:perfil"):
+        for nombre_url in ("accounts:perfil",):
             respuesta = self.client.get(reverse(nombre_url))
             self.assertRedirects(
                 respuesta, f"{reverse('accounts:login')}?next={reverse(nombre_url)}",
                 fetch_redirect_response=False,
             )
+
+    def test_inicio_anonimo_abre_restaurante(self):
+        self.assertRedirects(self.client.get(reverse("accounts:inicio")), reverse("menu:restaurante"))
 
     def test_middleware_protege_rutas_inexistentes_y_futuras(self):
         respuesta = self.client.get("/admin-panel/")

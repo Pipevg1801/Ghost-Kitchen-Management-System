@@ -19,6 +19,7 @@ from accounts.models import Rol, Usuario
 from menu.models import Plato
 from orders import services
 from orders.models import Pedido
+from .presentar_menu import PRESENTACION
 
 USUARIOS_PRUEBA = (
     {"email": "admin@example.com", "nombre": "Administrador Demo",
@@ -70,8 +71,12 @@ class Command(BaseCommand):
             self.stdout.write(f"  {'Creado' if creado else 'Actualizado'}: {usuario.email} ({rol})")
 
         for nombre, precio, descripcion, disponible in PLATOS_PRUEBA:
+            nombre_publico = next(item[1] for item in PRESENTACION if item[0] == nombre)
+            if Plato.objects.filter(nombre__in=(nombre, nombre_publico)).exists():
+                self.stdout.write(f"  Existente: {nombre_publico}")
+                continue
             _, creado = Plato.objects.get_or_create(
-                nombre=nombre,
+                nombre=nombre_publico,
                 defaults={"precio": Decimal(precio), "descripcion": descripcion,
                           "cantidad_disponible": disponible, "cantidad_reservada": 0},
             )

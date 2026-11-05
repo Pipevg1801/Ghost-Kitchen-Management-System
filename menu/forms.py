@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django import forms
+from django.core.files.uploadedfile import UploadedFile
 
 from core.forms import BootstrapFormMixin
 
@@ -61,7 +62,7 @@ class PlatoForm(BootstrapFormMixin, forms.ModelForm):
     def clean_imagen(self):
         imagen = self.cleaned_data.get("imagen")
         # Solo validar si es un archivo nuevo (no un FieldFile existente)
-        if imagen and hasattr(imagen, "size"):
+        if isinstance(imagen, UploadedFile):
             if imagen.size > 2 * 1024 * 1024:
                 raise forms.ValidationError("La imagen no puede superar los 2 MB.")
             if not imagen.content_type.startswith("image/"):

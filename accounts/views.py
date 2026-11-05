@@ -44,8 +44,9 @@ def registro(request):
     return render(request, "accounts/registro.html", {"form": form})
 
 
-@login_required
 def inicio(request):
+    if not request.user.is_authenticated:
+        return redirect("menu:restaurante")
     return redirect(url_inicio(request.user))
 
 

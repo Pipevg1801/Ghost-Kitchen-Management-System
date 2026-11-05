@@ -7,13 +7,16 @@ document.addEventListener("dk:respuesta", (event) => {
   if (!carrito) return;
 
   document.querySelectorAll("[data-carrito='compacto']").forEach((el) => {
-    el.innerHTML = carrito.html_compacto;
+    if (window.KitchenUI) window.KitchenUI.replace(el, carrito.html_compacto);
+    else el.innerHTML = carrito.html_compacto;
   });
   document.querySelectorAll("[data-carrito='completo']").forEach((el) => {
-    el.innerHTML = carrito.html_completo;
+    if (window.KitchenUI) window.KitchenUI.replace(el, carrito.html_completo);
+    else el.innerHTML = carrito.html_completo;
   });
   document.querySelectorAll(".js-carrito-contador").forEach((el) => {
-    el.textContent = carrito.cantidad;
+    if (window.KitchenUI) window.KitchenUI.counter(el, carrito.cantidad);
+    else el.textContent = carrito.cantidad;
   });
   document.querySelectorAll(".js-en-carrito").forEach((el) => {
     const cantidad = carrito.por_plato[el.dataset.plato] || 0;

@@ -69,9 +69,10 @@ El proyecto se organiza en aplicaciones Django con responsabilidades separadas (
    ```bash
    python manage.py migrate
    python manage.py seed_data --pedidos 25
+   python manage.py presentar_menu
    ```
 
-   Las migraciones crean los roles Cliente, Operario y Administrador. El comando `seed_data` es idempotente y genera usuarios, platos y, con el parámetro `--pedidos N`, N pedidos en distintos estados.
+   Las migraciones crean los roles Cliente, Operario y Administrador. El comando `seed_data` es idempotente y genera usuarios, platos y, con el parámetro `--pedidos N`, N pedidos en distintos estados. `presentar_menu` añade las categorías e imágenes ilustrativas al menú de demostración.
 
 6. Iniciar el servidor de desarrollo:
 
@@ -96,3 +97,42 @@ El proyecto se organiza en aplicaciones Django con responsabilidades separadas (
 | Administrador | admin@example.com | `AdminDemo#2026` |
 | Operario | operario@example.com | `OperarioDemo#2026` |
 | Cliente | cliente@example.com | `ClienteDemo#2026` |
+
+## API JSON para generar informes
+
+`GET /api/v1/informes/` devuelve el histórico completo por defecto. Con una
+sesión de Administrador puedes abrirlo desde **Informes → Ver datos JSON**.
+Para automatizar consultas, configura un valor aleatorio en `REPORTS_API_TOKEN`
+en el entorno del servidor (o en su `.env`) y reinicia Django. El valor vacío
+desactiva el acceso por token; nunca lo incluyas en el repositorio ni en la URL.
+Usa HTTPS al consumir la API fuera de localhost.
+
+Ejemplo desde PowerShell, con el mismo token disponible en el entorno del cliente:
+
+```powershell
+Invoke-RestMethod -Uri 'http://127.0.0.1:8000/api/v1/informes/?desde=2026-11-01&hasta=2026-11-30&por_pagina=100' -Headers @{ Authorization = "Bearer $env:REPORTS_API_TOKEN" }
+```
+
+| Parámetro | Descripción |
+|---|---|
+| `desde`, `hasta` | Fechas `AAAA-MM-DD`, inclusivas, en la zona horaria del restaurante. Cada límite es opcional. |
+| `estado` | `RECIBIDO`, `EN_PREPARACION`, `LISTO` o `CANCELADO`. |
+| `cliente` | Busca una parte del nombre o correo del cliente. |
+| `pagina`, `por_pagina` | Página desde 1 y tamaño de 1 a 250. Predeterminados: 1 y 100. |
+
+- `resumen`, `por_estado`, `serie_diaria` y `platos_mas_vendidos` cubren todo
+  el resultado filtrado. Los cancelados aparecen en los conteos por estado y el
+  historial, pero se excluyen de ventas, ingresos y ticket promedio. `serie_diaria`
+  incluye solo los días con pedidos; el ranking incluye todos los platos con ventas.
+- `pedidos` contiene una página de registros, con ID y nombre del cliente, fecha,
+  estado, total y cada línea con cantidad, precio histórico y subtotal.
+  Sigue `paginacion.siguiente` (ruta relativa al mismo servidor) hasta que sea
+  `null`. Las páginas reflejan los datos vigentes al consultar.
+- `inventario` contiene el catálogo actual completo, con categorías, precios,
+  platos activos e inactivos y cantidades disponibles y reservadas. No depende
+  de los filtros de pedidos; no hay un historial de movimientos de inventario.
+- Los importes se entregan como cadenas decimales en COP. La API no expone
+  contraseñas, correos, teléfonos, direcciones ni sesiones.
+
+Errores JSON: `400` filtros inválidos, `401` sin autenticación, `403` rol
+insuficiente, `404` página inexistente y `405` método distinto de GET.

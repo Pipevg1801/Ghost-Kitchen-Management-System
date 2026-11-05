@@ -1,32 +1,37 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Iniciar sesión{% endblock %}
-{% block main_class %}container py-5{% endblock %}
+{% block main_class %}auth-main{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-sm-10 col-md-7 col-lg-5">
-    <div class="text-center mb-4">
-      <i class="bi bi-fire text-warning display-4"></i>
-      <h1 class="h3 fw-bold mt-2">Restaurante</h1>
-      <p class="text-body-secondary">Inicie sesión para gestionar sus pedidos</p>
+<div class="auth-layout">
+  <section class="auth-story" aria-labelledby="auth-story-title">
+    <span class="eyebrow light"><span class="status-dot"></span> EL BUEN SABOR EMPIEZA AQUÍ</span>
+    <h2 id="auth-story-title">Qué rico<br>verte por aquí.</h2>
+    <p>Tu próxima comida favorita está a un paso.<br>Entra, elige y disfruta.</p>
+    <div class="plate-scene" data-motion-card>
+      <img src="{% static 'img/food/burger.webp' %}" alt="Burger de la casa con papas" width="1536" height="1024">
     </div>
-    <div class="card shadow-sm border-0">
-      <div class="card-body p-4">
+    <div class="auth-story-footer"><a href="{% url 'menu:restaurante' %}">Explora el menú antes de entrar <i class="bi bi-arrow-right"></i></a></div>
+  </section>
+  <section class="auth-form-panel" aria-labelledby="login-title">
+    <div class="auth-form-wrap">
+      <span class="eyebrow">BIENVENIDO A GHOST KITCHEN</span>
+      <h1 id="login-title">Qué bueno<br>tenerte de vuelta.</h1>
+      <p class="auth-intro">Inicia sesión y continúa donde lo dejaste.</p>
         {% if form.non_field_errors %}
           <div class="alert alert-danger">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
         {% endif %}
-        <form method="post" class="needs-validation" novalidate>
+        <form method="post" class="needs-validation auth-form" novalidate>
           {% csrf_token %}
           {% for field in form %}{% include "includes/form_field.html" %}{% endfor %}
           <input type="hidden" name="next" value="{{ next }}">
           <button type="submit" class="btn btn-dark w-100">
-            <i class="bi bi-box-arrow-in-right"></i> Ingresar
+            Ingresar <i class="bi bi-arrow-right"></i>
           </button>
         </form>
-      </div>
+      <p class="auth-signup">¿Es tu primera visita? <a href="{% url 'accounts:registro' %}">Crea tu cuenta <i class="bi bi-arrow-up-right"></i></a></p>
+      <div class="auth-security"><i class="bi bi-shield-check"></i> Tu espacio. Tus pedidos. Todo bajo control.</div>
     </div>
-    <p class="text-center mt-3 small">
-      ¿No tiene cuenta? <a href="{% url 'accounts:registro' %}">Regístrese como cliente</a>
-    </p>
-  </div>
+  </section>
 </div>
 {% endblock %}
