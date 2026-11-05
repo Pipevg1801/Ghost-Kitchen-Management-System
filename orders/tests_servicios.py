@@ -107,8 +107,8 @@ class FlujoCompletoPedidoTests(TestCase):
         cls.cliente = Usuario.objects.get(email="cliente@example.com")
         cls.operario = Usuario.objects.get(email="operario@example.com")
         cls.admin = Usuario.objects.get(email="admin@example.com")
-        cls.plato1 = Plato.objects.get(nombre="Ítem del menú #1")
-        cls.plato5 = Plato.objects.get(nombre="Ítem del menú #5")
+        cls.plato1 = Plato.objects.get(precio=Decimal("12345.00"))
+        cls.plato5 = Plato.objects.get(precio=Decimal("9900.00"))
 
     def test_flujo_completo_de_un_pedido(self):
         # --- 1. El cliente inicia sesión ---
