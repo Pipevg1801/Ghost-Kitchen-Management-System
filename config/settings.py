@@ -7,6 +7,7 @@ from pathlib import Path
 
 from django.contrib.messages import constants as message_constants
 from django.core.exceptions import ImproperlyConfigured
+import dj_database_url
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,6 +35,14 @@ DEBUG = env_bool("DEBUG", False)
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "")
 
+# Render define RENDER_EXTERNAL_HOSTNAME (p. ej. mi-app.onrender.com) en cada servicio web.
+RENDER_EXTERNAL_HOSTNAME = env("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+    # Render termina HTTPS en su proxy y reenvía la petición por HTTP.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -52,6 +61,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -88,19 +98,30 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 # --- Base de datos: PostgreSQL ---------------------------------------------
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DB_NAME", requerido=True),
-        "USER": env("DB_USER", requerido=True),
-        "PASSWORD": env("DB_PASSWORD", requerido=True),
-        "HOST": env("DB_HOST", "localhost"),
-        "PORT": env("DB_PORT", "5432"),
-        "CONN_MAX_AGE": int(env("DB_CONN_MAX_AGE", "60")),
-        "ATOMIC_REQUESTS": False,
-        "OPTIONS": {"connect_timeout": int(env("DB_CONNECT_TIMEOUT", "10"))},
+DATABASE_URL = env("DATABASE_URL")
+if DATABASE_URL:
+    # Producción (Render): una sola URL postgresql://usuario:clave@host:puerto/base
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=int(env("DB_CONN_MAX_AGE", "60")),
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME", requerido=True),
+            "USER": env("DB_USER", requerido=True),
+            "PASSWORD": env("DB_PASSWORD", requerido=True),
+            "HOST": env("DB_HOST", "localhost"),
+            "PORT": env("DB_PORT", "5432"),
+            "CONN_MAX_AGE": int(env("DB_CONN_MAX_AGE", "60")),
+            "ATOMIC_REQUESTS": False,
+            "OPTIONS": {"connect_timeout": int(env("DB_CONNECT_TIMEOUT", "10"))},
+        }
+    }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -149,6 +170,15 @@ USE_THOUSAND_SEPARATOR = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        # En producción WhiteNoise sirve los estáticos comprimidos y con hash.
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage" if DEBUG
+        else "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # --- Mensajes (clases de Bootstrap) ----------------------------------------
 MESSAGE_TAGS = {
